@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRoleEnum {
+  USER
+  ADMIN
+}
+
+model users {
+  id                 Int          @id @default(autoincrement())
+  wallet             String       @unique
+  username           String?
+  role               UserRoleEnum @default(USER)
+  created_at         DateTime     @default(now())
+  updated_at         DateTime     @updatedAt
+  deleted_at         DateTime?
+}
+
+model messages {
+  id       Int    @id @default(autoincrement())
+  user_id  Int
+  messages String @db.LongText
+}
+
+enum TransactionTypeEnum {
+  SWAP
+  SEND
+}
+
+model transactions {
+  id             Int                 @id @default(autoincrement())
+  user_id        Int
+  tx_hash        String              @db.VarChar(255)
+  token_in       String?             @db.VarChar(255)
+  token_out      String?             @db.VarChar(255)
+  amount_to_swap BigInt?
+  token_sent     String?             @db.VarChar(255)
+  amount_sent    BigInt?
+  recipient      String?             @db.VarChar(255)
+  sender         String?             @db.VarChar(255)
+  amount_in_usd  BigInt?
+  type           TransactionTypeEnum
+  timestamp      DateTime            @default(now()) @db.Timestamp(0)
+}
+
+enum ChatHistoryRoleEnum {
+  USER
+  BOT
+}
+
+model chat_history {
+  id         Int                 @id @default(autoincrement())
+  user_id    Int
+  role       ChatHistoryRoleEnum @default(USER)
+  message    String              @db.LongText
+  image      Bytes?
+  created_at DateTime            @default(now())
+  updated_at DateTime            @updatedAt
+  deleted_at DateTime?
+}
