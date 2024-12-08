@@ -11,12 +11,12 @@ const { BaseHelper } = require("../../common/utils/helper")
 const getWalletBalance = async (prop) => {
   const conversationResponses = []
   try {
-    const { userId } = prop
+    const { userId, blockchain } = prop
     const user = await UserRepository.getUserById(userId)
     const userAddress = user.wallet
 
     const balance =
-      (await EthWalletDetails.getUserEthWalletBalance(userAddress)) || 0
+      (await EthWalletDetails.getUserEthWalletBalance(userAddress, true, blockchain)) || 0
 
     const walletBalance = {
       balance: `Your wallet balance is ${BaseHelper.trimNumberToString(balance, 6)} ETH`,
@@ -40,7 +40,7 @@ const getWalletBalance = async (prop) => {
 const getTokenBalance = async (prop) => {
   const conversationResponses = []
   try {
-    const { token, userId } = prop
+    const { token, userId , blockchain} = prop
 
     const user = await UserRepository.getUserById(userId)
     const userAddress = user.wallet
@@ -68,7 +68,8 @@ const getTokenBalance = async (prop) => {
 
     const tokenBalanceResult = await EthWalletDetails.getUserEthTokenBalance(
       userAddress,
-      contractAddress[0]
+      contractAddress[0],
+        blockchain
     )
 
     tokenBalance = tokenBalanceResult.tokenBalance

@@ -1,9 +1,9 @@
 const { EthUtils } = require("./util.eth");
 
-const gasEstimate = async (toAddress, data, value) => {
+const gasEstimate = async (toAddress, data, value, blockchain) => {
     try {
         console.log("Estimating Gas...");
-        const provider = await EthUtils.getProvider();
+        const provider = await EthUtils.getProvider(blockchain);
         const tx = {
             to: toAddress,
             data: data,

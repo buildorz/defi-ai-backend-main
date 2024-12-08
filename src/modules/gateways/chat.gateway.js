@@ -15,6 +15,8 @@ class ChatGateway {
     this.socket.on(
       'newMessage',
       async ({ userId, message, blockchain, audioMessage }) => {
+        console.log('data from new message ', { userId, message, blockchain, audioMessage });
+
         if (!userId || (!message && !audioMessage) || !blockchain) {
           return this.sendData(this.socket.id, 'newMessageResponse', {
             error: 'userId, Message or connected blockchain is missing'

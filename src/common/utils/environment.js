@@ -39,6 +39,12 @@ const ENVIRONMENT = {
   PLOTLY: {
     PLOTLY_API_KEY: process.env.PLOTLY_API,
     PLOTLY_NAME: process.env.PLOTLY_NAME
+  },
+  RPC_URLS: {
+    ETH: process.env.ETH_RPC_URL,
+    BSC: process.env.BSC_RPC_URL,
+    POLYGON: process.env.POLYGON_RPC_URL,
+    BASE: process.env.BASE_RPC_URL
   }
 };
 

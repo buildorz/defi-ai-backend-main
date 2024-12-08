@@ -3,11 +3,17 @@ const { ErrorHandler } = require("../../../../../common/utils/appError");
 const { ENVIRONMENT } = require("../../../../../common/utils/environment");
 
 class EthUtils {
-    async getProvider() {
-        const network = ENVIRONMENT.ALCHEMY.NETWORK;
-        const apiKey = ENVIRONMENT.ALCHEMY.API_KEY;
-        // const provider = new ethers.getDefaultProvider(network);
-        return new ethers.AlchemyProvider(network, apiKey);
+    async getProvider(chain = 'ethereum') {
+        if (['eth', 'ethereum'].includes(chain.toLowerCase())) {
+            chain = 'eth'
+        }
+
+        let rpcUrl = ENVIRONMENT.RPC_URLS[chain.toUpperCase()];
+        if (!rpcUrl) {
+            throw new Error(`RPC URL for chain ${chain} not found`);
+        }
+
+        return new ethers.JsonRpcProvider(rpcUrl);
     }
 
     async getCurrentGasPrice() {

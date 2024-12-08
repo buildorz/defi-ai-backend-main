@@ -6,14 +6,14 @@ const { EthWalletDetails } = require("./walletDetails.eth")
 const { EthUtils } = require("./util.eth");
 const { gasEstimate } = require("./gasEstimate.eth");
 
-const resolveName = async (ensName) => {
-    const provider = await EthUtils.getProvider();
+const resolveName = async (ensName, blockchain) => {
+    const provider = await EthUtils.getProvider(blockchain);
     const address = await provider.resolveName(ensName);
     console.log("Resolved Address: ", address);
     return address;
 };
 
-const transferEthToken = async (token, toAddress, amount, userId) => {
+const transferEthToken = async (token, toAddress, amount, userId, blockchain) => {
     const conversationResponses = [];
     try {
         if (amount <= 0) {
@@ -26,7 +26,7 @@ const transferEthToken = async (token, toAddress, amount, userId) => {
         }
         const address = ethers.isAddress(toAddress)
             ? toAddress
-            : await resolveName(toAddress);
+            : await resolveName(toAddress, blockchain);
         if (!address) {
             const result = {
                 response: `${toAddress} is invalid. Please adjust your parameters and try again`,
@@ -69,7 +69,7 @@ const transferEthToken = async (token, toAddress, amount, userId) => {
                 return conversationResponses
             }
             tokenAddress = resultGetContractAddressFromTokenName;
-            const provider = await EthUtils.getProvider();
+            const provider = await EthUtils.getProvider(blockchain);
             const contract = new ethers.Contract(tokenAddress[0], EthWalletDetails.abi, provider);
             const { tokenBalance, tokenDecimal, tokenSymbol } =
                 await EthWalletDetails.getUserEthTokenBalance(userAddress, tokenAddress[0]);
@@ -101,6 +101,7 @@ const transferEthToken = async (token, toAddress, amount, userId) => {
             address,
             txData,
             value,
+            blockchain
         );
 
         if (status === 404) {

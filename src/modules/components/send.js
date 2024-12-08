@@ -7,7 +7,7 @@ const {
 const sendToken = async (prop) => {
   const conversationResponses = [];
   try {
-    const { token, toAddress, amount, userId } = prop;
+    const { token, toAddress, amount, userId, blockchain } = prop;
     console.log("send token main function ", {
       token,
       toAddress,
@@ -15,7 +15,7 @@ const sendToken = async (prop) => {
       userId,
     });
 
-    return await transferEthToken(token, toAddress, amount, userId);
+    return await transferEthToken(token, toAddress, amount, userId, blockchain);
   } catch (error) {
     ErrorHandler.asyncErrors(error);
 

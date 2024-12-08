@@ -37,9 +37,9 @@ class EthWalletDetails {
     }
   }
 
-  async getUserEthWalletBalance(userAddress, format = true) {
+  async getUserEthWalletBalance(userAddress, format = true, blockchain) {
     try {
-      const provider = await EthUtils.getProvider();
+      const provider = await EthUtils.getProvider(blockchain);
       const balance = await provider.getBalance(userAddress);
 
       return format ? ethers.formatEther(balance) : balance;
@@ -48,9 +48,9 @@ class EthWalletDetails {
     }
   }
 
-  async getUserEthTokenBalance(userAddress, contractAddress) {
+  async getUserEthTokenBalance(userAddress, contractAddress, blockchain) {
     try {
-      const provider = await EthUtils.getProvider();
+      const provider = await EthUtils.getProvider(blockchain);
       const erc20 = new ethers.Contract(contractAddress, this.abi, provider);
       const tokenBalance = await erc20.balanceOf(userAddress);
       const tokenSymbol = await erc20.symbol();
@@ -62,9 +62,9 @@ class EthWalletDetails {
     }
   }
 
-  async getWalletFromPrivateKey(pk) {
+  async getWalletFromPrivateKey(pk, blockchain ) {
     try {
-      const provider = await EthUtils.getProvider();
+      const provider = await EthUtils.getProvider(blockchain);
 
       const wallet = new ethers.Wallet(pk, provider);
 

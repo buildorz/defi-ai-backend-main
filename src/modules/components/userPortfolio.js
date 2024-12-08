@@ -4,12 +4,26 @@ const { CovalentClient } = require("@covalenthq/client-sdk");
 const { UserRepository } = require("../repositories/user.repository");
 const { ENVIRONMENT } = require("../../common/utils/environment");
 
-const getUserPortfolio = async (userAddress, nftConfirmation) => {
+const getNetworkFromBlockchain = (blockchain) => {
+  blockchain = blockchain.toLowerCase()
+
+  if (['eth', 'ethereum'].includes(blockchain)) {
+    return 'eth-mainnet'
+  } else if (blockchain === 'base') {
+    return 'base-mainnet'
+  } else if (blockchain === 'polygon') {
+    return 'matic-mainnet'
+  } else if (blockchain === 'bsc') {
+    return 'bsc-mainnet'
+  }
+}
+
+const getUserPortfolio = async (userAddress, nftConfirmation, blockchain) => {
   try {
     // eslint-disable-next-line no-undef
     const covalentAPI = ENVIRONMENT.COVALENT.API_KEY;
     const client = new CovalentClient(covalentAPI);
-    const network = "eth-mainnet";
+    const network = getNetworkFromBlockchain(blockchain);
 
     const resp = await client.BalanceService.getTokenBalancesForWalletAddress(
       network,
@@ -80,7 +94,7 @@ const getUserPortfolio = async (userAddress, nftConfirmation) => {
 const getUserTokenPortfolio = async (prop) => {
   const conversationResponses = [];
   try {
-    const { nftConfirmation, userId } = prop;
+    const { nftConfirmation, userId, blockchain } = prop;
     console.log("getUserTokenPortfolio", {
       nftConfirmation,
       userId,
@@ -91,7 +105,8 @@ const getUserTokenPortfolio = async (prop) => {
 
     const { portfolio, dateTimeUpdated, status } = await getUserPortfolio(
       userAddress,
-      nftConfirmation
+      nftConfirmation,
+        blockchain
     );
 
     if (status !== 200) {
