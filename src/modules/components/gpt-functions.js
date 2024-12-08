@@ -4,8 +4,12 @@ const { getUserTokenPortfolio } = require("./userPortfolio");
 const { getWalletBalance, getTokenBalance } = require("./userBalance");
 const { sendToken } = require("./send");
 const { swapTokens } = require("./swap");
-const { registerBaseName } = require("./registerBaseName");
+
 const { functions } = require("./utilities/functions");
+const { checkBaseNameAvailability } = require("./checkBaseNameAvailable");
+const {
+  purchaseBaseName,
+} = require("./utilities/blockchains/base/purchaseBasename");
 
 module.exports = {
   getCurrentGasPrice,
@@ -15,6 +19,7 @@ module.exports = {
   getTokenBalance,
   sendToken,
   swapTokens,
-  registerBaseName,
   functions,
+  checkBaseNameAvailability,
+  purchaseBaseName,
 };

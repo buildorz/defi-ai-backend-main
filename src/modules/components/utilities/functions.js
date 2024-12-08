@@ -57,46 +57,6 @@ const functions = [
   {
     type: "function",
     function: {
-      name: "register_base_name",
-      description: `Checks if a Base Name is available for registration and provides the registration price along with a link to register.
-        - This function is used when a user wants to check if a Base Name is available OR when a user wants to register a Base Name.`,
-      parameters: {
-        type: "object",
-        properties: {
-          name: {
-            type: "string",
-            description:
-              "The Base Name the user wants to check for availability.",
-          },
-          duration: {
-            type: "number",
-            description: `The duration in years for which the Base Name should be registered for. 
-              - If not stated, it can default to 1 year
-              - NEVER assume this value, ask the user for this value.`,
-          },
-        },
-        required: ["name", "duration"],
-      },
-      sample: `Sample: "Is 'example.base' available for registration?", "What is the registration price for 'example.base' for 1 year?", "Register 'example.base' for 1 year."`,
-    },
-  },
-  // {
-  //   type: "function",
-  //   function: {
-  //     name: "get_user_base_name",
-  //     description: `Retrieves the Base Name associated with a user's address.
-  //       - This function is used when a user wants to know their registered Base Name.`,
-  //     parameters: {
-  //       type: "object",
-  //       properties: {},
-  //       required: [],
-  //     },
-  //     sample: `Sample: "What is my Base Name?"`,
-  //   },
-  // },
-  {
-    type: "function",
-    function: {
       name: "get_user_token_portfolio",
       description: `Retrieves all the cryptocurrency tokens in the users wallet.
         - This function requires a token name or contract address to be specified.
@@ -221,6 +181,96 @@ const functions = [
         required: ["tokenIn", "tokenOut", "amountToSwap", "slippage"],
       },
       sample: `Sample: "Swap 500 DAI to WETH with a 10% slippage"`,
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "check_base_name_availability",
+      description: `Checks if a Base Name is available and provides the registration price.
+        - This function is used when a user wants to check if a Base Name is available and get its price.
+        - If the name is available, it will ask if the user wants to proceed with registration.`,
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description:
+              "The Base Name the user wants to check for availability.",
+          },
+          duration: {
+            type: "number",
+            description: `The duration in years for which the Base Name price should be calculated for. 
+              - If not stated, it can default to 1 year
+              - NEVER assume this value, ask the user for this value.`,
+          },
+        },
+        required: ["name", "duration"],
+      },
+      sample: `Sample: "Is 'example.base' available?", "Check if 'example.base' is available for 1 year", "What is the price for 'example.base' for 2 years?"`,
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "purchase_base_name",
+      description: `Purchases a Base Name after confirming its availability.
+        - This function is used when a user wants to proceed with purchasing a Base Name
+        - Should only be called after checking availability and getting user confirmation`,
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "The Base Name the user wants to purchase",
+          },
+          duration: {
+            type: "number",
+            description:
+              "The duration in years for which the Base Name should be registered",
+          },
+          confirmed: {
+            type: "boolean",
+            description:
+              "Whether the user has confirmed they want to proceed with the purchase",
+          },
+        },
+        required: ["name", "duration", "confirmed"],
+      },
+      sample: `Sample: User: "yes, I want to buy example.base for 2 years", "proceed with purchasing example.base"`,
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "restake",
+      description: `The restake function enables users to stake their tokens with EigenLayer protocol.
+        - It allows users to deposit their tokens into EigenLayer's strategy contracts
+        - Supports staking of tokens like stETH
+        - Requires token contract address and amount parameters
+        - The function handles approval and deposit transactions
+        - Keywords: 'stake', 'restake', 'deposit'
+        - Always ask for clarification if token or amount is not specified`,
+      parameters: {
+        type: "object",
+        properties: {
+          tokenName: {
+            type: "string",
+            description:
+              "The name of the token being staked (e.g. 'stETH', 'ETH'). Used for identifying the token in user interactions.",
+          },
+          amount: {
+            type: "number",
+            description: `The amount of tokens the user wants to stake into EigenLayer
+            - amount cannot be zero or 0
+            - amount must be greater than zero
+            - if amount is not sstated ask the user to add it
+            - user must always state the number token they want to stake`,
+          },
+        },
+        required: ["tokenName", "amount"],
+      },
+      sample: `Sample: "Stake 10 stETH with EigenLayer", "Restake 5 stETH"`,
     },
   },
 ];

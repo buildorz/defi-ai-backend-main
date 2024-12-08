@@ -2,11 +2,31 @@ const axios = require("axios");
 
 const getContractAddressFromTokenName = async (
   tokenName,
-  returnTokenName = false
+  returnTokenName = false,
+  blockchain = "ethereum"
 ) => {
   try {
-    let base = "eth";
-    const blockchain = "ethereum";
+    blockchain = blockchain.toLowerCase();
+    let base;
+
+    switch (blockchain.toLowerCase()) {
+      case "ethereum":
+        base = "eth";
+        break;
+      case "bsc":
+        base = "bsc";
+        break;
+      case "polygon":
+      case "matic":
+        base = "polygon";
+        break;
+      case "base":
+        base = "base";
+        break;
+      default:
+        base = "eth";
+        break;
+    }
 
     let tokenContractAddresses = [];
     let tokensPreSort = [];
@@ -15,7 +35,11 @@ const getContractAddressFromTokenName = async (
     );
 
     const tokens = response.data.pairs.filter((token) => {
-      return token.chainId === blockchain || token.chainId === "pulsechain";
+      if (token.chainId === "ethereum") {
+        return token.chainId === blockchain || token.chainId === "pulsechain";
+      } else {
+        return token.chainId === blockchain;
+      }
     });
 
     tokens.forEach((token) => {

@@ -7,9 +7,13 @@ const {
 const { BaseHelper } = require("../../common/utils/helper");
 const dextoolsAPI = ENVIRONMENT.DEXTOOLS.API_KEY;
 
-const fetchDextoolsData = async (tokenContractAddress, endpoint = "/") => {
+const fetchDextoolsData = async (
+  tokenContractAddress,
+  blockchain,
+  endpoint = "/"
+) => {
   const response = await axios.get(
-    `https://public-api.dextools.io/standard/v2/token/ether/${tokenContractAddress}${endpoint}`,
+    `https://public-api.dextools.io/standard/v2/token/${blockchain}/${tokenContractAddress}${endpoint}`,
     {
       headers: {
         "X-API-KEY": dextoolsAPI,
@@ -19,17 +23,21 @@ const fetchDextoolsData = async (tokenContractAddress, endpoint = "/") => {
   return response;
 };
 
-const getTokenDetails = async (tokenContractAddress) => {
+const getTokenDetails = async (tokenContractAddress, blockchain) => {
   try {
+    blockchain = blockchain.toLowerCase();
+    if (blockchain === "eth") {
+      blockchain = "ether";
+    }
     console.log(`Getting Token Details of ${tokenContractAddress}...`);
     const [
       getTokenBasicDetails,
       getAdditionalTokenDetails,
       getTokenPriceDetails,
     ] = await Promise.all([
-      fetchDextoolsData(tokenContractAddress),
-      fetchDextoolsData(tokenContractAddress, "/info"),
-      fetchDextoolsData(tokenContractAddress, "/price"),
+      fetchDextoolsData(tokenContractAddress, blockchain),
+      fetchDextoolsData(tokenContractAddress, blockchain, "/info"),
+      fetchDextoolsData(tokenContractAddress, blockchain, "/price"),
     ]);
     // const getTokenBasicDetails = await axios.get(
     //   `https://public-api.dextools.io/standard/v2/token/${chain}/${tokenContractAddress}`,
@@ -66,14 +74,14 @@ const getTokenDetails = async (tokenContractAddress) => {
     await BaseHelper.sleep(2000);
 
     const modifiedTokenPriceDetails = {
-      UsdPrice: getTokenPriceDetails.data.data.price,
-      EthPrice: getTokenPriceDetails.data.data.priceChain,
-      UsdVariation5minutes: getTokenPriceDetails.data.data.variation5m,
-      EthVariation5minutes: getTokenPriceDetails.data.data.variationChain5m,
-      UsdVariation6hours: getTokenPriceDetails.data.data.variation6h,
-      EthVariation6hours: getTokenPriceDetails.data.data.variationChain6h,
-      UsdPrice24hours: getTokenPriceDetails.data.data.price24h,
-      EthPrice24hours: getTokenPriceDetails.data.data.priceChain24h,
+      UsdPrice: getTokenPriceDetails.data.data?.price,
+      EthPrice: getTokenPriceDetails.data.data?.priceChain,
+      UsdVariation5minutes: getTokenPriceDetails.data.data?.variation5m,
+      EthVariation5minutes: getTokenPriceDetails.data.data?.variationChain5m,
+      UsdVariation6hours: getTokenPriceDetails.data.data?.variation6h,
+      EthVariation6hours: getTokenPriceDetails.data.data?.variationChain6h,
+      UsdPrice24hours: getTokenPriceDetails.data.data?.price24h,
+      EthPrice24hours: getTokenPriceDetails.data.data?.priceChain24h,
     };
 
     const resultGetTokenDetails = {
@@ -124,7 +132,7 @@ const getETHDetails = async (EthPrice) => {
 const allTokenDetails = async (prop) => {
   const conversationResponses = [];
   try {
-    const { token } = prop;
+    const { token, blockchain } = prop;
     if (token.toLowerCase() === "eth") {
       try {
         const { statusGetEthUsdPrice, resultGetEthUsdPrice } =
@@ -151,7 +159,7 @@ const allTokenDetails = async (prop) => {
     const {
       statusGetContractAddressFromTokenName,
       resultGetContractAddressFromTokenName,
-    } = await getContractAddressFromTokenName(token);
+    } = await getContractAddressFromTokenName(token, false, blockchain);
     if (statusGetContractAddressFromTokenName !== 200) {
       const result = {
         response: resultGetContractAddressFromTokenName,
@@ -163,7 +171,7 @@ const allTokenDetails = async (prop) => {
     const tokenContractAddress = resultGetContractAddressFromTokenName;
 
     const { statusGetTokenDetails, resultGetTokenDetails } =
-      await getTokenDetails(tokenContractAddress[0]);
+      await getTokenDetails(tokenContractAddress[0], blockchain);
     if (statusGetTokenDetails !== 200) {
       const response = constructConversation(
         resultGetTokenDetails,

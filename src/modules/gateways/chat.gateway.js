@@ -1,25 +1,29 @@
-const { runConversation } = require('../services/runConversation');
+const { runConversation } = require("../services/runConversation");
 const {
-  transcribeAudioToText
-} = require('../../common/utils/openai-helper/transcribeAudio');
+  transcribeAudioToText,
+} = require("../../common/utils/openai-helper/transcribeAudio");
 
 class ChatGateway {
   constructor(io, socket) {
     this.io = io;
     this.socket = socket;
-
     this.setupListeners();
   }
 
   setupListeners() {
     this.socket.on(
-      'newMessage',
+      "newMessage",
       async ({ userId, message, blockchain, audioMessage }) => {
-        console.log('data from new message ', { userId, message, blockchain, audioMessage });
+        console.log("data from new message ", {
+          userId,
+          message,
+          blockchain,
+          audioMessage,
+        });
 
         if (!userId || (!message && !audioMessage) || !blockchain) {
-          return this.sendData(this.socket.id, 'newMessageResponse', {
-            error: 'userId, Message or connected blockchain is missing'
+          return this.sendData(this.socket.id, "newMessageResponse", {
+            error: "userId, Message or connected blockchain is missing",
           });
         }
 
@@ -27,9 +31,9 @@ class ChatGateway {
           const transcribedMessage = await transcribeAudioToText(audioMessage);
 
           if (!transcribedMessage?.success) {
-            return this.sendData(this.socket.id, 'newMessageResponse', {
+            return this.sendData(this.socket.id, "newMessageResponse", {
               error:
-                'Unable to process your message at the moment. Please try again later.'
+                "Unable to process your message at the moment. Please try again later.",
             });
           }
 
@@ -37,8 +41,8 @@ class ChatGateway {
         }
 
         const response = await runConversation(userId, message, blockchain);
-        this.sendData(this.socket.id, 'newMessageResponse', {
-          success: response
+        this.sendData(this.socket.id, "newMessageResponse", {
+          success: response,
         });
       }
     );

@@ -6,8 +6,8 @@ const { EthWalletDetails } = require("./walletDetails.eth");
 const { EthUtils } = require("./util.eth");
 const { gasEstimate } = require("./gasEstimate.eth");
 
-const resolveName = async (ensName, blockchain) => {
-  const provider = await EthUtils.getProvider(blockchain);
+const resolveName = async (ensName) => {
+  const provider = await EthUtils.getProvider();
   const address = await provider.resolveName(ensName);
   console.log("Resolved Address: ", address);
   return address;
@@ -32,7 +32,7 @@ const transferEthToken = async (
     }
     const address = ethers.isAddress(toAddress)
       ? toAddress
-      : await resolveName(toAddress, blockchain);
+      : await resolveName(toAddress);
     if (!address) {
       const result = {
         response: `${toAddress} is invalid. Please adjust your parameters and try again`,
@@ -46,19 +46,23 @@ const transferEthToken = async (
     let formattedamount;
     const user = await UserRepository.getUserById(userId);
     const userAddress = user.wallet;
-    if (token.toLowerCase() === "eth") {
+    // if user wants to send the native token of any supported chain, eth, base, polygon and bsc
+    // then we don't need to get the token address
+    const nativeTokens = ["eth", "base", "bnb", "polygon", "matic"];
+    if (nativeTokens.includes(token.toLowerCase())) {
       txData = "";
       tokenAddress = "";
       const userBalance = await EthWalletDetails.getUserEthWalletBalance(
         userAddress,
-        false
+        false,
+        blockchain
       );
       formattedamount = ethers.parseEther(amount.toString());
       if (formattedamount > userBalance) {
         const result = {
-          response: `You do not have enough ETH to send. Your balance is ${ethers.formatEther(
+          response: `You do not have enough tokens to send. Your balance is ${ethers.formatEther(
             userBalance.toString()
-          )} while you're attempting to transfer ${amount} ETH`,
+          )} while you're attempting to transfer ${amount} ${blockchain}`,
         };
         const response = constructConversation(result, null, false, true);
         conversationResponses.push(response);
@@ -68,7 +72,7 @@ const transferEthToken = async (
       const {
         statusGetContractAddressFromTokenName,
         resultGetContractAddressFromTokenName,
-      } = await getContractAddressFromTokenName(token);
+      } = await getContractAddressFromTokenName(token, false, blockchain);
       if (statusGetContractAddressFromTokenName !== 200) {
         const result = {
           response: resultGetContractAddressFromTokenName,
@@ -110,9 +114,12 @@ const transferEthToken = async (
       ]);
     }
 
-    const value =
-      token.toLowerCase() === "eth" ? ethers.parseEther(amount.toString()) : 0;
-    const recipient = token.toLowerCase() === "eth" ? address : tokenAddress[0];
+    const value = nativeTokens.includes(token.toLowerCase())
+      ? ethers.parseEther(amount.toString())
+      : 0;
+    const recipient = nativeTokens.includes(token.toLowerCase())
+      ? address
+      : tokenAddress[0];
     const { status, gasEstimateResponse } = await gasEstimate(
       address,
       txData,
@@ -150,9 +157,9 @@ const transferEthToken = async (
 
     const message = `You are about to transfer ${data.rawAmount} ${
       data.token
-    } ${data.token.toLowerCase() === "eth" ? "" : `(${data.tokenAddress})`} to ${data.toAddress}.\nEstimated transaction cost is ${Number(
+    } ${nativeTokens.includes(data.token.toLowerCase()) ? "" : `(${data.tokenAddress})`} to ${data.toAddress}.\nEstimated transaction cost is ${Number(
       ethers.formatEther(Number(data.gasEstimate).toString())
-    ).toFixed(8)} ETH`;
+    ).toFixed(8)} ${blockchain.toUpperCase()}`;
 
     const result = `Awaiting Confirmation... Please confirm the transaction within the next 60 seconds`;
 

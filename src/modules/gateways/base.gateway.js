@@ -1,4 +1,4 @@
-const { prismaClientService } = require('../../../prisma/prisma-client');
+const { prismaClientService } = require("../../../prisma/prisma-client");
 
 class BaseGateway {
   constructor(io, socket) {
@@ -9,26 +9,30 @@ class BaseGateway {
   }
 
   setupListeners() {
-    this.socket.on('newChat', (data) => {
-      this.sendData(this.socket.id, 'newChat', data);
+    this.socket.on("newChat", (data) => {
+      this.sendData(this.socket.id, "newChat", data);
     });
 
-    this.socket.on('userLogin', async ({ walletAddress }) => {
+    this.socket.on("userLogin", async ({ walletAddress }) => {
       console.log("User login...", walletAddress);
       if (!walletAddress) return;
 
       const user = await prismaClientService.users.findFirst({
-        where: { wallet: walletAddress }
+        where: { wallet: walletAddress },
       });
 
       if (!user) {
-        this.sendData(this.socket.id, 'invalidCredentials', 'Invalid credentials');
+        this.sendData(
+          this.socket.id,
+          "invalidCredentials",
+          "Invalid credentials"
+        );
         return;
       }
 
       this.sendData(
         this.socket.id,
-        'systemMessage',
+        "systemMessage",
         `Welcome back, ${user?.username || walletAddress}!`
       );
     });

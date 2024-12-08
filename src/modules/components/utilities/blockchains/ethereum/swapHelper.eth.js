@@ -11,7 +11,14 @@ const { getTokenAudit } = require("../../../tokenAuditInfo");
 const feeReceiverAddress = ENVIRONMENT.SWAP.FEE_RECEIVER;
 
 class SwapEth {
-  async swapTokens(tokenIn, tokenOut, amountToSwap, slippageAmount, userId) {
+  async swapTokens(
+    tokenIn,
+    tokenOut,
+    amountToSwap,
+    slippageAmount,
+    userId,
+    blockchain
+  ) {
     const conversationResponses = [];
     try {
       console.log(
@@ -21,6 +28,7 @@ class SwapEth {
         amountToSwap,
         slippageAmount,
         userId,
+        blockchain
       );
       if (amountToSwap <= 0 || slippageAmount < 0) {
         const result = {
@@ -52,22 +60,23 @@ class SwapEth {
       const EthAddress = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
       const slippage = slippageAmount * 100;
 
-      if (tokenIn.toString().toLowerCase() === "eth") {
-        console.log("Token In == ETH", new Date(Date.now()));
+      const nativeTokens = ["eth", "base", "bnb", "polygon", "matic"];
+
+      if (nativeTokens.includes(tokenIn.toString().toLowerCase())) {
+        console.log("Token In == Native Currency", new Date(Date.now()));
         tokenInContractAddress = [EthAddress];
         tokenInBalance = await EthWalletDetails.getUserEthWalletBalance(
           userAddress,
           false,
+          blockchain
         );
 
         tokenInDetails = {
           tokenBalance: tokenInBalance,
-          tokenName: "Ethereum",
-          tokenSymbol: "ETH",
+          tokenName: blockchain.toUpperCase(),
+          tokenSymbol: blockchain.toUpperCase(),
           tokenDecimal: 18,
         };
-
-        console.log("Token In Details: ", new Date(Date.now()), tokenInDetails);
 
         if (tokenInBalance === 0) {
           const result = {
@@ -83,13 +92,13 @@ class SwapEth {
         feeDetails = {
           feeAmount: 0,
           feeDecimals: 18,
-          feeSymbol: "ETH",
+          feeSymbol: blockchain.toUpperCase(),
         };
       } else {
         const {
           statusGetContractAddressFromTokenName,
           resultGetContractAddressFromTokenName,
-        } = await getContractAddressFromTokenName(tokenIn);
+        } = await getContractAddressFromTokenName(tokenIn, false, blockchain);
 
         if (statusGetContractAddressFromTokenName !== 200) {
           const result = {
@@ -103,7 +112,7 @@ class SwapEth {
         tokenInContractAddress = resultGetContractAddressFromTokenName;
         tokenInDetails = await EthWalletDetails.getUserEthTokenBalance(
           userAddress,
-          tokenInContractAddress[0],
+          tokenInContractAddress[0]
         );
 
         if (tokenInDetails.tokenBalance === 0) {
@@ -118,7 +127,7 @@ class SwapEth {
 
         amount = ethers.parseUnits(
           amountToSwap.toString(),
-          Number(tokenInDetails.tokenDecimal),
+          Number(tokenInDetails.tokenDecimal)
         );
 
         feeDetails = {
@@ -128,18 +137,18 @@ class SwapEth {
         };
       }
 
-      if (tokenOut.toString().toLowerCase() === "eth") {
+      if (nativeTokens.includes(tokenOut.toString().toLowerCase())) {
         tokenOutContractAddress = [EthAddress];
         tokenOutDetails = {
           tokenBalance: null,
-          tokenName: "Ethereum",
-          tokenSymbol: "ETH",
+          tokenName: blockchain.toUpperCase(),
+          tokenSymbol: blockchain.toUpperCase(),
         };
       } else {
         const {
           statusGetContractAddressFromTokenName,
           resultGetContractAddressFromTokenName,
-        } = await getContractAddressFromTokenName(tokenOut);
+        } = await getContractAddressFromTokenName(tokenOut, false, blockchain);
 
         if (statusGetContractAddressFromTokenName !== 200) {
           const result = {
@@ -154,7 +163,7 @@ class SwapEth {
 
         tokenOutDetails = await EthWalletDetails.getUserEthTokenBalance(
           userAddress,
-          tokenOutContractAddress[0],
+          tokenOutContractAddress[0]
         );
       }
 
@@ -163,7 +172,7 @@ class SwapEth {
   		\nToken Out: ${tokenOut} - ${tokenOutContractAddress}
   		\nAmount to swap: ${amountToSwap} ${tokenInDetails.tokenSymbol} [${amount}]
   		\nSlippage: ${slippage}
-  		\nFees: ${feeDetails.feeAmount}`,
+  		\nFees: ${feeDetails.feeAmount}`
       );
 
       // Check if the user has enough tokens for the swap
@@ -173,7 +182,7 @@ class SwapEth {
         result = {
           response: `You do not have enough tokens to perform the swap. Your ${tokenIn} balance is ${ethers.formatUnits(
             tokenInDetails.tokenBalance.toString(),
-            Number(tokenInDetails.tokenDecimal),
+            Number(tokenInDetails.tokenDecimal)
           )} while you're attempting to swap ${amountToSwap} ${tokenInDetails.tokenSymbol}`,
         };
         const response = constructConversation(result, null, false, true);
@@ -227,7 +236,7 @@ class SwapEth {
         const suggestedSlip = await this.computeSlippage(
           tokenInSellTax,
           tokenOutBuyTax,
-          slippageModify,
+          slippageModify
         );
 
         let suggestedSlippage = suggestedSlip;
@@ -236,7 +245,7 @@ class SwapEth {
 
         if (!suggestedSlip) {
           console.log(
-            "An issue occurred while trying to estimate an appropriate slippage for your swap. The swap will proceed using either your stated slippage or the default slippage.",
+            "An issue occurred while trying to estimate an appropriate slippage for your swap. The swap will proceed using either your stated slippage or the default slippage."
           );
           suggestedSlippage = slippage;
         }
@@ -252,13 +261,14 @@ class SwapEth {
           Number(amount).toString(),
           feeReceiverAddress,
           feeDetails.feeAmount,
+          blockchain
         );
         if (routeResponse.status !== 200) {
           const response = constructConversation(
             routeResponse,
             null,
             false,
-            true,
+            true
           );
           conversationResponses.push(response);
           return conversationResponses;
@@ -268,13 +278,14 @@ class SwapEth {
           userAddress,
           routeSummary,
           usedSlippage,
+          blockchain
         );
         if (postRouteResponse.status !== 200) {
           const response = constructConversation(
             postRouteResponse,
             null,
             false,
-            true,
+            true
           );
           conversationResponses.push(response);
           return conversationResponses;
@@ -294,7 +305,7 @@ class SwapEth {
 
         const formattedFeeAmount = ethers.formatUnits(
           feeAmount.toString(),
-          Number(feeDetails.feeDecimals),
+          Number(feeDetails.feeDecimals)
         );
 
         const txnFee = BigInt(gasFee) * BigInt(gasPrice);
@@ -305,12 +316,12 @@ class SwapEth {
           tokenOutContractAddress[0].toLowerCase() === EthAddress.toLowerCase()
         ) {
           formattedExpectedAmountOut = ethers.formatEther(
-            expectedAmountOut.toString(),
+            expectedAmountOut.toString()
           );
         } else {
           formattedExpectedAmountOut = ethers.formatUnits(
             expectedAmountOut.toString(),
-            Number(tokenOutDetails.tokenDecimal),
+            Number(tokenOutDetails.tokenDecimal)
           );
         }
         let value;
@@ -318,13 +329,13 @@ class SwapEth {
           tokenInContractAddress[0].toLowerCase() === EthAddress.toLowerCase()
         ) {
           formattedExpectedAmountIn = ethers.formatEther(
-            expectedAmountIn.toString(),
+            expectedAmountIn.toString()
           );
           value = BigInt(Number(expectedAmountIn));
         } else {
           formattedExpectedAmountIn = ethers.formatUnits(
             expectedAmountIn.toString(),
-            Number(tokenInDetails.tokenDecimal),
+            Number(tokenInDetails.tokenDecimal)
           );
           value = 0;
         }
@@ -366,12 +377,14 @@ class SwapEth {
         const message = `You are about to swap ${messageData.expectedAmountIn} ${
           messageData.tokenIn
         } (${messageData.tokenInSymbol}) for ${Number(
-          messageData.expectedAmountOut,
+          messageData.expectedAmountOut
         ).toFixed(4)} ${messageData.tokenOut} (${
           messageData.tokenOutSymbol
         })${messageData.tokenOutCA ? `, with contract address: ${messageData.tokenOutCA}` : ""}.\nEstimated transaction cost is ${Number(
-          messageData.txnCost,
-        ).toFixed(4)} ETH ($${Number(messageData.txnCostUsd).toFixed(2)}).${
+          messageData.txnCost
+        ).toFixed(
+          4
+        )} ${blockchain.toUpperCase()} ($${Number(messageData.txnCostUsd).toFixed(2)}).${
           messageData.tax === 0
             ? ""
             : `\nFee: ${messageData.tax} ${messageData.feeSymbol}`
@@ -398,7 +411,7 @@ class SwapEth {
         const finalData = {
           function: "swap",
           sub_function: null,
-          blockchain: "ethereum",
+          blockchain: blockchain,
           tx: tx,
           txData: messageData,
           constructedMessage: message,
@@ -408,7 +421,7 @@ class SwapEth {
           finalData,
           true,
           false,
-          60000,
+          60000
         );
         conversationResponses.push(response);
 
@@ -431,11 +444,16 @@ class SwapEth {
     amountToSwap,
     feeReceiver,
     feeAmount,
+    blockchain
   ) {
     try {
+      blockchain = blockchain.toLowerCase();
+      if (blockchain === "eth") {
+        blockchain = "ethereum";
+      }
       console.log("Getting Route...");
       const getRoute = await axios.get(
-        "https://aggregator-api.kyberswap.com/ethereum/api/v1/routes",
+        `https://aggregator-api.kyberswap.com/${blockchain}/api/v1/routes`,
         {
           params: {
             tokenIn: tokenInContractAddress,
@@ -448,7 +466,7 @@ class SwapEth {
             isInBps: false,
             chargeFeeBy: "currency_in",
           },
-        },
+        }
       );
       console.log("Get Route successful...");
       return getRoute;
@@ -461,17 +479,21 @@ class SwapEth {
     }
   }
 
-  async postRouteSummary(userAddress, routeSummary, slippage) {
+  async postRouteSummary(userAddress, routeSummary, slippage, blockchain) {
     try {
+      blockchain = blockchain.toLowerCase();
+      if (blockchain === "eth") {
+        blockchain = "ethereum";
+      }
       console.log("Posting Route...");
       const swapData = await axios.post(
-        "https://aggregator-api.kyberswap.com/ethereum/api/v1/route/build",
+        `https://aggregator-api.kyberswap.com/${blockchain}/api/v1/route/build`,
         {
           recipient: userAddress,
           sender: userAddress,
           routeSummary: routeSummary,
           slippageTolerance: slippage ? slippage : 100,
-        },
+        }
       );
       console.log("Post Route Successful...");
       return swapData;
@@ -487,7 +509,7 @@ class SwapEth {
   async computeSlippage(
     tokenInSellTax = 0,
     tokenOutBuyTax = 0,
-    slippageModifiable,
+    slippageModifiable
   ) {
     try {
       console.log("Suggesting slippage...");
@@ -501,7 +523,7 @@ class SwapEth {
         return slippage;
       }
       const slippage = parseInt(
-        Math.max(tokenInSellTax, tokenOutBuyTax) * 15000,
+        Math.max(tokenInSellTax, tokenOutBuyTax) * 15000
       );
       console.log("slippage compute: ", slippage);
       return slippage;

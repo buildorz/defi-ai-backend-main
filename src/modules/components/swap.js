@@ -4,7 +4,8 @@ const constructConversation = require("../services/conversationConstructor");
 const swapTokens = async (prop) => {
   const conversationResponses = [];
   try {
-    const { tokenIn, tokenOut, amountToSwap, slippage, userId } = prop;
+    const { tokenIn, tokenOut, amountToSwap, slippage, blockchain, userId } =
+      prop;
 
     console.log("swap tokens payload", prop);
 
@@ -14,6 +15,7 @@ const swapTokens = async (prop) => {
       amountToSwap,
       slippage,
       userId,
+      blockchain
     );
   } catch (error) {
     const result = {
