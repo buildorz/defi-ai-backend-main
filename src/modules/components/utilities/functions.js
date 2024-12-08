@@ -57,6 +57,46 @@ const functions = [
   {
     type: "function",
     function: {
+      name: "register_base_name",
+      description: `Checks if a Base Name is available for registration and provides the registration price along with a link to register.
+        - This function is used when a user wants to check if a Base Name is available OR when a user wants to register a Base Name.`,
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description:
+              "The Base Name the user wants to check for availability.",
+          },
+          duration: {
+            type: "number",
+            description: `The duration in years for which the Base Name should be registered for. 
+              - If not stated, it can default to 1 year
+              - NEVER assume this value, ask the user for this value.`,
+          },
+        },
+        required: ["name", "duration"],
+      },
+      sample: `Sample: "Is 'example.base' available for registration?", "What is the registration price for 'example.base' for 1 year?", "Register 'example.base' for 1 year."`,
+    },
+  },
+  // {
+  //   type: "function",
+  //   function: {
+  //     name: "get_user_base_name",
+  //     description: `Retrieves the Base Name associated with a user's address.
+  //       - This function is used when a user wants to know their registered Base Name.`,
+  //     parameters: {
+  //       type: "object",
+  //       properties: {},
+  //       required: [],
+  //     },
+  //     sample: `Sample: "What is my Base Name?"`,
+  //   },
+  // },
+  {
+    type: "function",
+    function: {
       name: "get_user_token_portfolio",
       description: `Retrieves all the cryptocurrency tokens in the users wallet.
         - This function requires a token name or contract address to be specified.

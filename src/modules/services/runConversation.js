@@ -16,7 +16,7 @@ const {
   getWalletBalance,
   sendToken,
   swapTokens,
-  getTokenAnalysis,
+  registerBaseName,
 } = require("../components/gpt-functions.js");
 const {
   ChatHistoryRepository,
@@ -86,10 +86,10 @@ async function runConversation(userId, message, blockchain) {
         get_token_balance: getTokenBalance,
         all_token_details: allTokenDetails,
         get_user_token_portfolio: getUserTokenPortfolio,
-        analyze_token: getTokenAnalysis,
         get_transaction_fee: getCurrentGasPrice,
         transfer_tokens: sendToken,
         swap_tokens: swapTokens,
+        register_base_name: registerBaseName,
       };
 
       userMessages.push(responseMessage); // extend conversation with assistant's reply

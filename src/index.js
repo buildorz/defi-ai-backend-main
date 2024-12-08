@@ -1,22 +1,22 @@
-const cors = require('cors');
-const express = require('express');
-const bodyParser = require('body-parser');
-const { ENVIRONMENT } = require('./common/utils/environment');
-const { errorHandler } = require('./common/utils/errorHandler');
-const timeoutMiddleware = require('./modules/middlewares/timeout.middleware');
-const { AuthRouter } = require('./modules/routes/auth.route');
-const { UserRouter } = require('./modules/routes/user.route');
-const http = require('http');
-const { Server } = require('socket.io');
-const { websocketSetup } = require('./modules/gateways');
-const { MessageRouter } = require('./modules/routes/message.route');
-const { TransactionRouter } = require('./modules/routes/transaction.route');
-const { ChatHistoryRouter } = require('./modules/routes/chatHistory.route');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const pino = require('pino');
-const expressPino = require('express-pino-logger');
-const pinoPretty = require('pino-pretty');
+const cors = require("cors");
+const express = require("express");
+const bodyParser = require("body-parser");
+const { ENVIRONMENT } = require("./common/utils/environment");
+const { errorHandler } = require("./common/utils/errorHandler");
+const timeoutMiddleware = require("./modules/middlewares/timeout.middleware");
+const { AuthRouter } = require("./modules/routes/auth.route");
+const { UserRouter } = require("./modules/routes/user.route");
+const http = require("http");
+const { Server } = require("socket.io");
+const { websocketSetup } = require("./modules/gateways");
+const { MessageRouter } = require("./modules/routes/message.route");
+const { TransactionRouter } = require("./modules/routes/transaction.route");
+const { ChatHistoryRouter } = require("./modules/routes/chatHistory.route");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const pino = require("pino");
+const expressPino = require("express-pino-logger");
+const pinoPretty = require("pino-pretty");
 
 const app = express();
 let server;
@@ -27,7 +27,7 @@ server = http.createServer(app);
 // Rate limiter
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 80 // limit each IP to 1000 requests per windowMs
+  max: 80, // limit each IP to 1000 requests per windowMs
 });
 app.use(limiter);
 
@@ -35,9 +35,9 @@ app.use(limiter);
 const socketIO = new Server(server, {
   cors: {
     origin: "*",
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    credentials: true
-  }
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
+  },
 });
 
 // setup websocket
@@ -52,27 +52,27 @@ app.use(helmet());
 app.use(
   cors({
     origin: "*",
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   })
 );
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // setup logger
 const logger = pino(
   pinoPretty({
-    level: 'info',
-    redact: ['req.headers.authorization'], // redact authorization headers
-    censor: ['[Redacted]'], // replace redacted fields with '[Redacted]'
-    colorize: true
+    level: "info",
+    redact: ["req.headers.authorization"], // redact authorization headers
+    censor: ["[Redacted]"], // replace redacted fields with '[Redacted]'
+    colorize: true,
   })
 );
 
 const expressLogger = expressPino({ logger });
 
 // don't use pino logger in development
-if (ENVIRONMENT.APP.ENV !== 'development') {
+if (ENVIRONMENT.APP.ENV !== "development") {
   app.use(expressLogger);
 }
 
@@ -80,11 +80,11 @@ if (ENVIRONMENT.APP.ENV !== 'development') {
  *  uncaughtException handler
  */
 // eslint-disable-next-line no-undef
-process.on('uncaughtException', async (error) => {
-  console.log('UNCAUGHT EXCEPTION! 💥 Server Shutting down...');
+process.on("uncaughtException", async (error) => {
+  console.log("UNCAUGHT EXCEPTION! 💥 Server Shutting down...");
   console.log(error.name, error.message);
   console.error(
-    'UNCAUGHT EXCEPTION!! 💥 Server Shutting down... ' +
+    "UNCAUGHT EXCEPTION!! 💥 Server Shutting down... " +
       new Date(Date.now()) +
       error.name,
     error.message
@@ -96,21 +96,21 @@ process.on('uncaughtException', async (error) => {
 /**
  * routes
  */
-app.use('/api/auth', AuthRouter);
-app.use('/api/user', UserRouter);
-app.use('/api/message', MessageRouter);
-app.use('/api/transaction', TransactionRouter);
-app.use('/api/chat-history', ChatHistoryRouter);
+app.use("/api/auth", AuthRouter);
+app.use("/api/user", UserRouter);
+app.use("/api/message", MessageRouter);
+app.use("/api/transaction", TransactionRouter);
+app.use("/api/chat-history", ChatHistoryRouter);
 
-app.all('/*', async (req, res) => {
+app.all("/*", async (req, res) => {
   console.error(
-    'route not found ' + new Date(Date.now()) + ' ' + req.originalUrl
+    "route not found " + new Date(Date.now()) + " " + req.originalUrl
   );
   res.status(404).json({
-    status: 'error',
+    status: "error",
     message: `OOPs!! No handler defined for ${req.method.toUpperCase()}: ${
       req.url
-    } route. Check the API documentation for more details.`
+    } route. Check the API documentation for more details.`,
   });
 });
 
@@ -130,11 +130,11 @@ app.use(errorHandler);
  */
 
 // eslint-disable-next-line no-undef
-process.on('unhandledRejection', async (error) => {
-  console.log('UNHANDLED REJECTION! 💥 Server Shutting down...');
+process.on("unhandledRejection", async (error) => {
+  console.log("UNHANDLED REJECTION! 💥 Server Shutting down...");
   console.log(error.name, error.message);
   console.error(
-    'UNHANDLED REJECTION! 💥 Server Shutting down... ' +
+    "UNHANDLED REJECTION! 💥 Server Shutting down... " +
       new Date(Date.now()) +
       error.name,
     error.message
